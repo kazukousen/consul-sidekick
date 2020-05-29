@@ -6,13 +6,14 @@ import (
 	"log"
 	"time"
 
+	"net"
+
 	consul "github.com/hashicorp/consul/api"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"net"
 )
 
 type consulSideKick struct {
@@ -37,7 +38,7 @@ func (c consulSideKick) getPodInfo() (ip string, ownerSelector labels.Selector, 
 	replicaSetName := ownerReference.Name
 	replicaSet, err := c.k8sClient.ReplicaSets(c.namespace).Get(replicaSetName, v1.GetOptions{})
 	if err != nil {
-		return "", nil, fmt.Errorf("Cannot access ReplicaSet (%s/%s)", c.namespace, replicaSetName)
+		return "", nil, fmt.Errorf("Cannot access ReplicaSet (%s/%s): %v", c.namespace, replicaSetName, err)
 	}
 	podSelector := replicaSet.Spec.Selector
 	selector, err := v1.LabelSelectorAsSelector(podSelector)
